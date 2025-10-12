@@ -80,7 +80,7 @@ public class UsuarioController {
         return ResponseEntity.ok(new AuthResponse(token));
     }
 
-    // Clase interna para respuesta de login/registro
+    // Clase interna para respuesta de login/registr
     @Data
     @AllArgsConstructor
     public static class AuthResponse {
