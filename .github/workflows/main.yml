@@ -10,11 +10,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    #  Clonar el repositorio
+    # 1️⃣ Clonar el repositorio
     - name: Checkout código
       uses: actions/checkout@v4
 
-    #  Crear carpeta destino en EC2
+    # 2️⃣ Crear carpeta destino en EC2
     - name: Crear carpeta en el servidor
       uses: appleboy/ssh-action@v1
       with:
@@ -25,19 +25,19 @@ jobs:
         script: |
           mkdir -p /home/ubuntu/backend-recetas
 
-    #  Sincronizar archivos de la carpeta 'recetas'
+    # 3️⃣ Sincronizar todos los archivos al servidor
     - name: Sincronizar archivos al servidor
       uses: burnett01/rsync-deployments@7.0.2
       with:
         switches: "-avz --delete"
-        path: "./recetas/" # ← carpeta de tu proyecto local
+        path: "./" # todo desde la raíz del repo
         remote_host: ${{ secrets.IP_SERVER }}
         remote_user: ${{ secrets.USERNAME }}
         remote_path: "/home/ubuntu/backend-recetas/"
         remote_key: ${{ secrets.PRIVATE_KEY }}
         remote_port: ${{ secrets.PORT }}
 
-    # Levantar contenedores Docker Compose
+    # 4️⃣ Levantar contenedores Docker Compose en EC2
     - name: Levantar contenedores con Docker Compose
       uses: appleboy/ssh-action@v1
       with:
