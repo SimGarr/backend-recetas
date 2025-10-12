@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8
+    container_name: mysql-recetas
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: recetas1312420
+      MYSQL_DATABASE: recetas_db
+      MYSQL_USER: recetas_user
+      MYSQL_PASSWORD: recetas1312420
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_recetas_data:/var/lib/mysql
+
+  backend:
+    build:
+      context: .
+      dockerfile: dockerfile
+    container_name: backend-recetas
+    restart: always
+    depends_on:
+      - mysql
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-recetas:3306/recetas_db
+      SPRING_DATASOURCE_USERNAME: recetas_user
+      SPRING_DATASOURCE_PASSWORD: recetas1312420
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+
+volumes:
+  mysql_recetas_data:

@@ -1,0 +1,51 @@
+name: Deploy BackendRecetas
+
+on:
+  push:
+    branches:
+    - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    #  Clonar el repositorio
+    - name: Checkout código
+      uses: actions/checkout@v4
+
+    #  Crear carpeta destino en EC2
+    - name: Crear carpeta en el servidor
+      uses: appleboy/ssh-action@v1
+      with:
+        host: ${{ secrets.IP_SERVER }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.PRIVATE_KEY }}
+        port: ${{ secrets.PORT }}
+        script: |
+          mkdir -p /home/ubuntu/backend-recetas
+
+    #  Sincronizar archivos de la carpeta 'recetas'
+    - name: Sincronizar archivos al servidor
+      uses: burnett01/rsync-deployments@7.0.2
+      with:
+        switches: "-avz --delete"
+        path: "./recetas/" # ← carpeta de tu proyecto local
+        remote_host: ${{ secrets.IP_SERVER }}
+        remote_user: ${{ secrets.USERNAME }}
+        remote_path: "/home/ubuntu/backend-recetas/"
+        remote_key: ${{ secrets.PRIVATE_KEY }}
+        remote_port: ${{ secrets.PORT }}
+
+    # Levantar contenedores Docker Compose
+    - name: Levantar contenedores con Docker Compose
+      uses: appleboy/ssh-action@v1
+      with:
+        host: ${{ secrets.IP_SERVER }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.PRIVATE_KEY }}
+        port: ${{ secrets.PORT }}
+        script: |
+          cd /home/ubuntu/backend-recetas
+          sudo docker-compose down
+          sudo docker-compose up -d --build
