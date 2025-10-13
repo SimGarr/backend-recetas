@@ -1,6 +1,5 @@
 package com.basededatosrecetas.recetas.Model;
 
-
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
@@ -12,6 +11,7 @@ import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
@@ -36,11 +36,21 @@ public class Recetas {
     private String imagenUrl;
 
     @Column(nullable = false)
-    private int tiempoPreparacion; // en minutos
+    private int tiempoPreparacion;
 
     @Column(nullable = true)
     private double calificacionPromedio;
 
     @Column(nullable = false)
     private LocalDateTime fechaCreacion = LocalDateTime.now();
+
+
+    @Column(nullable = true)
+    private String nombreArchivo;
+
+    @Column(nullable = true)
+    private String tipoArchivo;
+
+    @Column(nullable = true)
+    private Long tamañoArchivo;
 }

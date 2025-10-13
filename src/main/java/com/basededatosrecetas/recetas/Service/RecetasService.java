@@ -43,7 +43,7 @@ public class RecetasService {
         return receta;
     }
 
-    public Recetas createReceta(Recetas receta) {
+    public Recetas crearReceta(Recetas receta) {
         log.info("🆕 Creando nueva receta - Nombre: {}, Categoría: {}", 
                 receta.getNombre(), receta.getCategoria());
         try {

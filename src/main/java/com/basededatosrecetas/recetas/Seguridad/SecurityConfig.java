@@ -39,15 +39,35 @@ public class SecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .authorizeHttpRequests(auth -> auth
-                // Endpoints públicos
-                .requestMatchers("/api/usuarios/login", "/api/usuarios/register", "/api/recetas/**")
-                .permitAll()
-                // Endpoints autenticados
-                .requestMatchers("/comentarios/**", "/favoritos/**", "/historial/**", "/like/**")
-                .hasAnyRole("USER", "ADMIN")
-                // Endpoints solo ADMIN
-                .requestMatchers("/etiquetas/**", "/api/usuarios/**")
-                .hasRole("ADMIN")
+                // ==================== ENDPOINTS PÚBLICOS ====================
+                .requestMatchers(
+                    "/api/usuarios/login", 
+                    "/api/usuarios/register",
+                    "/api/recetas/**",           // GET de recetas públicos
+                    "/api/archivos/**",          // Servir archivos (público para ver recetas)
+                    "/error"
+                ).permitAll()
+                
+                // ==================== ENDPOINTS DE SUBIDA (AUTENTICADOS) ====================
+                .requestMatchers(
+                    "/api/subida/**",            // Subir recetas con archivos
+                    "/api/recetas",              // POST crear receta (con autenticación)
+                    "/api/recetas/**/like",      // Like a recetas
+                    "/api/recetas/**/favorito",  // Favoritos
+                    "/api/comentarios/**",       // Comentarios
+                    "/api/favoritos/**",         // Gestión de favoritos
+                    "/api/historial/**",         // Historial de usuario
+                    "/api/perfil/**"             // Perfil de usuario
+                ).hasAnyRole("USER", "ADMIN")
+                
+                // ==================== ENDPOINTS ADMIN ====================
+                .requestMatchers(
+                    "/api/usuarios/**",          // Gestión de usuarios
+                    "/api/admin/**",             // Endpoints administrativos
+                    "/api/etiquetas/**",         // Gestión de etiquetas
+                    "/api/categorias/**"         // Gestión de categorías
+                ).hasRole("ADMIN")
+                
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
@@ -65,8 +85,20 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList("*"));
         configuration.setAllowedMethods(Arrays.asList("GET","POST","PUT","DELETE","OPTIONS","PATCH"));
-        configuration.setAllowedHeaders(Arrays.asList("*"));
-        configuration.setExposedHeaders(Arrays.asList("Authorization","Content-Type"));
+        configuration.setAllowedHeaders(Arrays.asList(
+            "Authorization",
+            "Content-Type",
+            "Accept",
+            "Origin",
+            "X-Requested-With",
+            "Access-Control-Request-Method",
+            "Access-Control-Request-Headers"
+        ));
+        configuration.setExposedHeaders(Arrays.asList(
+            "Authorization",
+            "Content-Type",
+            "Content-Disposition"
+        ));
         configuration.setAllowCredentials(false);
         configuration.setMaxAge(3600L);
 
