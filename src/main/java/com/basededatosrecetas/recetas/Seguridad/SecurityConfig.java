@@ -80,30 +80,44 @@ public class SecurityConfig {
         return authConfig.getAuthenticationManager();
     }
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("*"));
-        configuration.setAllowedMethods(Arrays.asList("GET","POST","PUT","DELETE","OPTIONS","PATCH"));
-        configuration.setAllowedHeaders(Arrays.asList(
-            "Authorization",
-            "Content-Type",
-            "Accept",
-            "Origin",
-            "X-Requested-With",
-            "Access-Control-Request-Method",
-            "Access-Control-Request-Headers"
-        ));
-        configuration.setExposedHeaders(Arrays.asList(
-            "Authorization",
-            "Content-Type",
-            "Content-Disposition"
-        ));
-        configuration.setAllowCredentials(false);
-        configuration.setMaxAge(3600L);
+@Bean
+public CorsConfigurationSource corsConfigurationSource() {
+    CorsConfiguration configuration = new CorsConfiguration();
+    
+    // Lista EXPLÍCITA de orígenes permitidos (NO usar "*")
+    configuration.setAllowedOrigins(Arrays.asList(
+        "https://localhost",
+        "http://localhost", 
+        "capacitor://localhost",
+        "ionic://localhost",
+        "http://localhost:8100",
+        "http://localhost:4200",
+        "https://localhost:8100",
+        "https://localhost:4200",
+        "https://apprecetas.duckdns.org",
+        "http://apprecetas.duckdns.org"
+    ));
+    
+    configuration.setAllowedMethods(Arrays.asList("GET","POST","PUT","DELETE","OPTIONS","PATCH"));
+    configuration.setAllowedHeaders(Arrays.asList(
+        "Authorization",
+        "Content-Type",
+        "Accept",
+        "Origin",
+        "X-Requested-With",
+        "Access-Control-Request-Method",
+        "Access-Control-Request-Headers"
+    ));
+    configuration.setExposedHeaders(Arrays.asList(
+        "Authorization",
+        "Content-Type",
+        "Content-Disposition"
+    ));
+    configuration.setAllowCredentials(true); // CAMBIAR a TRUE
+    configuration.setMaxAge(3600L);
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", configuration);
+    return source;
+}
 }
