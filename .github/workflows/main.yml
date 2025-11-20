@@ -3,7 +3,7 @@ name: Deploy BackendRecetas
 on:
   push:
     branches:
-      - main
+    - main
 
 jobs:
   deploy:
@@ -59,7 +59,7 @@ jobs:
             -keypass TuPasswordSeguro \
             -dname "CN=localhost, OU=Dev, O=MiEmpresa, L=Ciudad, S=Estado, C=CL"
 
-    # 5️⃣ Levantar contenedores Docker Compose en EC2
+    # 5️⃣ Levantar contenedores Docker Compose en EC2s
     - name: Levantar contenedores con Docker Compose
       uses: appleboy/ssh-action@v1
       with:
