@@ -41,7 +41,6 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // ==================== ENDPOINTS PÚBLICOS ====================
                 .requestMatchers(
-                    "/api/subida/**",
                     "/api/usuarios/login", 
                     "/api/usuarios/register",
                     "/api/recetas/**",
@@ -51,6 +50,7 @@ public class SecurityConfig {
                 
                 // ==================== ENDPOINTS DE SUBIDA (AUTENTICADOS) ====================
                 .requestMatchers(
+                    "/api/subida/**",
                     "/api/recetas",
                     "/api/recetas/**/like",
                     "/api/recetas/**/favorito",
