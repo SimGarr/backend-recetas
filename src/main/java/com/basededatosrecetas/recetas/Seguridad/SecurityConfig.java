@@ -41,31 +41,31 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // ==================== ENDPOINTS PÚBLICOS ====================
                 .requestMatchers(
+                    "/api/subida/**",
                     "/api/usuarios/login", 
                     "/api/usuarios/register",
-                    "/api/recetas/**",           // GET de recetas públicos
-                    "/api/archivos/**",          // Servir archivos (público para ver recetas)
+                    "/api/recetas/**",
+                    "/api/archivos/**",
                     "/error"
                 ).permitAll()
                 
                 // ==================== ENDPOINTS DE SUBIDA (AUTENTICADOS) ====================
                 .requestMatchers(
-                    "/api/subida/**",            // Subir recetas con archivos
-                    "/api/recetas",              // POST crear receta (con autenticación)
-                    "/api/recetas/**/like",      // Like a recetas
-                    "/api/recetas/**/favorito",  // Favoritos
-                    "/api/comentarios/**",       // Comentarios
-                    "/api/favoritos/**",         // Gestión de favoritos
-                    "/api/historial/**",         // Historial de usuario
-                    "/api/perfil/**"             // Perfil de usuario
+                    "/api/recetas",
+                    "/api/recetas/**/like",
+                    "/api/recetas/**/favorito",
+                    "/api/comentarios/**",
+                    "/api/favoritos/**",
+                    "/api/historial/**",
+                    "/api/perfil/**"
                 ).hasAnyRole("USER", "ADMIN")
                 
                 // ==================== ENDPOINTS ADMIN ====================
                 .requestMatchers(
-                    "/api/usuarios/**",          // Gestión de usuarios
-                    "/api/admin/**",             // Endpoints administrativos
-                    "/api/etiquetas/**",         // Gestión de etiquetas
-                    "/api/categorias/**"         // Gestión de categorías
+                    "/api/usuarios/**",
+                    "/api/admin/**",
+                    "/api/etiquetas/**",
+                    "/api/categorias/**"
                 ).hasRole("ADMIN")
                 
                 .anyRequest().authenticated()

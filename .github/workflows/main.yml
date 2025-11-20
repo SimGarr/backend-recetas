@@ -3,7 +3,7 @@ name: Deploy BackendRecetas
 on:
   push:
     branches:
-    - main
+      - main
 
 jobs:
   deploy:
@@ -37,7 +37,29 @@ jobs:
         remote_key: ${{ secrets.PRIVATE_KEY }}
         remote_port: ${{ secrets.PORT }}
 
-    # 4️⃣ Levantar contenedores Docker Compose en EC2
+    # 4️⃣ Generar keystore auto-firmado en EC2
+    - name: Generar keystore auto-firmado en EC2
+      uses: appleboy/ssh-action@v1
+      with:
+        host: ${{ secrets.IP_SERVER }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.PRIVATE_KEY }}
+        port: ${{ secrets.PORT }}
+        script: |
+          cd /home/ubuntu/backend-recetas
+          mkdir -p src/main/resources
+          keytool -genkeypair \
+            -alias miapp \
+            -keyalg RSA \
+            -keysize 2048 \
+            -storetype PKCS12 \
+            -keystore src/main/resources/keystore.p12 \
+            -validity 3650 \
+            -storepass TuPasswordSeguro \
+            -keypass TuPasswordSeguro \
+            -dname "CN=localhost, OU=Dev, O=MiEmpresa, L=Ciudad, S=Estado, C=CL"
+
+    # 5️⃣ Levantar contenedores Docker Compose en EC2
     - name: Levantar contenedores con Docker Compose
       uses: appleboy/ssh-action@v1
       with:

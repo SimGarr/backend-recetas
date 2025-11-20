@@ -47,8 +47,8 @@ public class RecetasController {
 
     // Crear nueva receta
     @PostMapping
-    public Recetas createReceta(@RequestBody Recetas receta) {
-        return recetasService.createReceta(receta);
+    public Recetas crearReceta(@RequestBody Recetas receta) {
+        return recetasService.crearReceta(receta);
     }
 
     // Actualizar receta
