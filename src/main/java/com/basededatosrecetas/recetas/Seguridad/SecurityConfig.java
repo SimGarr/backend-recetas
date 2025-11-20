@@ -40,6 +40,7 @@ public class SecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .authorizeHttpRequests(auth -> auth
+                  .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 // ==================== ENDPOINTS PÚBLICOS ====================
                 .requestMatchers(
                     "/api/usuarios/login", 
@@ -48,7 +49,6 @@ public class SecurityConfig {
                     "/api/archivos/**",
                     "/error"
                 ).permitAll()
-                            .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 
                 // ==================== ENDPOINTS DE SUBIDA (AUTENTICADOS) ====================
                 .requestMatchers(
