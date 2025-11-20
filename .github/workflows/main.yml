@@ -8,14 +8,32 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
-    # 1️⃣ Clonar el repositorio
     - name: Checkout código
       uses: actions/checkout@v4
 
-    # 2️⃣ Crear carpeta destino en EC2
-    - name: Crear carpeta en el servidor
+    # 1. Generar keystore LOCALMENTE (aquí sí hay keytool)
+    - name: Generar keystore localmente
+      run: |
+        echo "🔧 Generando keystore localmente..."
+        mkdir -p src/main/resources
+        keytool -genkeypair \
+          -alias miapp \
+          -keyalg RSA \
+          -keysize 2048 \
+          -storetype PKCS12 \
+          -keystore src/main/resources/keystore.p12 \
+          -validity 3650 \
+          -storepass TuPasswordSeguro \
+          -keypass TuPasswordSeguro \
+          -dname "CN=localhost, OU=Dev, O=MiEmpresa, L=Ciudad, S=Estado, C=CL" \
+          -noprompt
+        echo "✅ Keystore generado localmente"
+
+    # 2. Diagnosticar conexión SSH
+    - name: Diagnosticar conexión SSH
       uses: appleboy/ssh-action@v1
       with:
         host: ${{ secrets.IP_SERVER }}
@@ -23,51 +41,47 @@ jobs:
         key: ${{ secrets.PRIVATE_KEY }}
         port: ${{ secrets.PORT }}
         script: |
-          mkdir -p /home/ubuntu/backend-recetas
+          echo "🟢 Conexión SSH exitosa"
+          echo "🐋 Docker status:"
+          docker --version
+          docker-compose --version
 
-    # 3️⃣ Sincronizar todos los archivos al servidor
+    # 3. Sincronizar archivos (INCLUYENDO el keystore generado)
     - name: Sincronizar archivos al servidor
       uses: burnett01/rsync-deployments@7.0.2
       with:
         switches: "-avz --delete"
-        path: "./" # todo desde la raíz del repo
+        path: "./"
         remote_host: ${{ secrets.IP_SERVER }}
         remote_user: ${{ secrets.USERNAME }}
         remote_path: "/home/ubuntu/backend-recetas/"
         remote_key: ${{ secrets.PRIVATE_KEY }}
         remote_port: ${{ secrets.PORT }}
 
-    # 4️⃣ Generar keystore auto-firmado en EC2
-    - name: Generar keystore auto-firmado en EC2
+    # 4. Solo desplegar con Docker Compose
+    - name: Desplegar con Docker Compose
       uses: appleboy/ssh-action@v1
       with:
         host: ${{ secrets.IP_SERVER }}
         username: ${{ secrets.USERNAME }}
         key: ${{ secrets.PRIVATE_KEY }}
         port: ${{ secrets.PORT }}
+        script_timeout: 5m
         script: |
           cd /home/ubuntu/backend-recetas
-          mkdir -p src/main/resources
-          keytool -genkeypair \
-            -alias miapp \
-            -keyalg RSA \
-            -keysize 2048 \
-            -storetype PKCS12 \
-            -keystore src/main/resources/keystore.p12 \
-            -validity 3650 \
-            -storepass TuPasswordSeguro \
-            -keypass TuPasswordSeguro \
-            -dname "CN=localhost, OU=Dev, O=MiEmpresa, L=Ciudad, S=Estado, C=CL"
 
-    # 5️⃣ Levantar contenedores Docker Compose en EC2s
-    - name: Levantar contenedores con Docker Compose
-      uses: appleboy/ssh-action@v1
-      with:
-        host: ${{ secrets.IP_SERVER }}
-        username: ${{ secrets.USERNAME }}
-        key: ${{ secrets.PRIVATE_KEY }}
-        port: ${{ secrets.PORT }}
-        script: |
-          cd /home/ubuntu/backend-recetas
+          echo "🔍 Verificando archivos..."
+          ls -la src/main/resources/ || echo "No resources directory"
+          ls -la src/main/resources/keystore.p12 && echo "✅ Keystore encontrado" || echo "❌ Keystore no encontrado"
+
+          echo "🐋 Levantando contenedores..."
           sudo docker-compose down
           sudo docker-compose up -d --build
+
+          echo "⏰ Esperando que los servicios inicien..."
+          sleep 30
+
+          echo "🔍 Verificando contenedores..."
+          sudo docker-compose ps
+          sudo docker-compose logs --tail=20
+          echo "✅ Despliegue completado"
