@@ -40,7 +40,12 @@ public class SecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .authorizeHttpRequests(auth -> auth
-                  .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                // Permitir OPTIONS
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                // ==================== ACTUATOR ====================
+                .requestMatchers("/actuator/**").permitAll()
+
                 // ==================== ENDPOINTS PÚBLICOS ====================
                 .requestMatchers(
                     "/api/usuarios/login", 
@@ -49,19 +54,18 @@ public class SecurityConfig {
                     "/api/archivos/**",
                     "/error"
                 ).permitAll()
-                
-                // ==================== ENDPOINTS DE SUBIDA (AUTENTICADOS) ====================
+
+                // ==================== ENDPOINTS DE USUARIO ====================
                 .requestMatchers(
                     "/api/subida/**",
-                    "/api/recetas",
-                    "/api/recetas/**/like",
-                    "/api/recetas/**/favorito",
+                    "/api/recetas/like/**",
+                    "/api/recetas/favorito/**",
                     "/api/comentarios/**",
                     "/api/favoritos/**",
                     "/api/historial/**",
                     "/api/perfil/**"
                 ).hasAnyRole("USER", "ADMIN")
-                
+
                 // ==================== ENDPOINTS ADMIN ====================
                 .requestMatchers(
                     "/api/usuarios/**",
@@ -69,7 +73,8 @@ public class SecurityConfig {
                     "/api/etiquetas/**",
                     "/api/categorias/**"
                 ).hasRole("ADMIN")
-                
+
+                // Cualquier otra ruta requiere autenticación
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
@@ -82,44 +87,33 @@ public class SecurityConfig {
         return authConfig.getAuthenticationManager();
     }
 
-@Bean
-public CorsConfigurationSource corsConfigurationSource() {
-    CorsConfiguration configuration = new CorsConfiguration();
-    
-    // Lista EXPLÍCITA de orígenes permitidos (NO usar "*")
-    configuration.setAllowedOrigins(Arrays.asList(
-        "https://localhost",
-        "http://localhost", 
-        "capacitor://localhost",
-        "ionic://localhost",
-        "http://localhost:8100",
-        "http://localhost:4200",
-        "https://localhost:8100",
-        "https://localhost:4200",
-        "https://apprecetas.duckdns.org",
-        "http://apprecetas.duckdns.org"
-    ));
-    
-    configuration.setAllowedMethods(Arrays.asList("GET","POST","PUT","DELETE","OPTIONS","PATCH"));
-    configuration.setAllowedHeaders(Arrays.asList(
-        "Authorization",
-        "Content-Type",
-        "Accept",
-        "Origin",
-        "X-Requested-With",
-        "Access-Control-Request-Method",
-        "Access-Control-Request-Headers"
-    ));
-    configuration.setExposedHeaders(Arrays.asList(
-        "Authorization",
-        "Content-Type",
-        "Content-Disposition"
-    ));
-    configuration.setAllowCredentials(true); // CAMBIAR a TRUE
-    configuration.setMaxAge(3600L);
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowCredentials(true);
 
-    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/**", configuration);
-    return source;
-}
+        // Permitir cualquier origen en desarrollo
+        configuration.addAllowedOriginPattern("*");
+
+        configuration.setAllowedMethods(Arrays.asList("GET","POST","PUT","DELETE","OPTIONS","PATCH"));
+        configuration.setAllowedHeaders(Arrays.asList(
+            "Authorization",
+            "Content-Type",
+            "Accept",
+            "Origin",
+            "X-Requested-With",
+            "Access-Control-Request-Method",
+            "Access-Control-Request-Headers"
+        ));
+        configuration.setExposedHeaders(Arrays.asList(
+            "Authorization",
+            "Content-Type",
+            "Content-Disposition"
+        ));
+        configuration.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
 }
