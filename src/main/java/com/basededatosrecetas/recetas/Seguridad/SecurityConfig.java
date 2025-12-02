@@ -40,13 +40,13 @@ public class SecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .authorizeHttpRequests(auth -> auth
-                // Permitir OPTIONS (preflight CORS)
+                // Permitir OPTIONS
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                // ====================== ACTUATOR ======================
+                // ==================== ACTUATOR ====================
                 .requestMatchers("/actuator/**").permitAll()
 
-                // ====================== ENDPOINTS PÚBLICOS ======================
+                // ==================== ENDPOINTS PÚBLICOS ====================
                 .requestMatchers(
                     "/api/usuarios/login", 
                     "/api/usuarios/register",
@@ -55,7 +55,7 @@ public class SecurityConfig {
                     "/error"
                 ).permitAll()
 
-                // ====================== ENDPOINTS DE USUARIO ======================
+                // ==================== ENDPOINTS DE USUARIO ====================
                 .requestMatchers(
                     "/api/subida/**",
                     "/api/recetas/like/**",
@@ -66,7 +66,7 @@ public class SecurityConfig {
                     "/api/perfil/**"
                 ).hasAnyRole("USER", "ADMIN")
 
-                // ====================== ENDPOINTS ADMIN ======================
+                // ==================== ENDPOINTS ADMIN ====================
                 .requestMatchers(
                     "/api/usuarios/**",
                     "/api/admin/**",
@@ -87,46 +87,38 @@ public class SecurityConfig {
         return authConfig.getAuthenticationManager();
     }
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowCredentials(true);
+@Bean
+public CorsConfigurationSource corsConfigurationSource() {
+    CorsConfiguration configuration = new CorsConfiguration();
+    configuration.setAllowCredentials(true);
 
-        // Orígenes permitidos (Ionic, Capacitor, localhost y producción)
-        configuration.setAllowedOriginPatterns(Arrays.asList(
-            "http://localhost:*",
-            "http://localhost",
-            "https://localhost",
-            "capacitor://localhost",
-            "ionic://localhost",
-            "https://apprecetas.duckdns.org"
-        ));
+    configuration.setAllowedOrigins(Arrays.asList(
+        "http://localhost:8100",      // Ionic web
+        "http://localhost",           // casos especiales
+        "https://localhost",          // Capacitor Android/iOS
+        "capacitor://localhost",
+        "ionic://localhost",
+        "https://apprecetas.duckdns.org" // Producción
+    ));
 
-        configuration.setAllowedMethods(Arrays.asList(
-            "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"
-        ));
+    configuration.setAllowedMethods(Arrays.asList(
+        "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"
+    ));
 
-        configuration.setAllowedHeaders(Arrays.asList(
-            "Authorization",
-            "Content-Type",
-            "Accept",
-            "Origin",
-            "X-Requested-With",
-            "Access-Control-Request-Method",
-            "Access-Control-Request-Headers"
-        ));
+    configuration.setAllowedHeaders(Arrays.asList(
+        "*"
+    ));
 
-        configuration.setExposedHeaders(Arrays.asList(
-            "Authorization",
-            "Content-Type",
-            "Content-Disposition"
-        ));
+    configuration.setExposedHeaders(Arrays.asList(
+        "Authorization",
+        "Content-Type",
+        "Content-Disposition"
+    ));
 
-        configuration.setMaxAge(3600L); // 1 hora
+    configuration.setMaxAge(3600L);
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-
-        return source;
-    }
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", configuration);
+    return source;
+}
 }
