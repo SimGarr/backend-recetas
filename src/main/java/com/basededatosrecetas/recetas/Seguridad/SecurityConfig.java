@@ -90,32 +90,23 @@ public class SecurityConfig {
 @Bean
 public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration configuration = new CorsConfiguration();
+
+    // Permitir credenciales (tokens, cookies, Authorization headers)
     configuration.setAllowCredentials(true);
 
-    configuration.setAllowedOrigins(Arrays.asList(
-        "http://localhost:8100",      // Ionic web
-        "http://localhost",           // casos especiales
-        "https://localhost",          // Capacitor Android/iOS
-        "capacitor://localhost",
-        "ionic://localhost",
-        "https://apprecetas.duckdns.org" // Producción
-    ));
+    // **Permitir cualquier origen**
+    configuration.addAllowedOriginPattern("*");
 
-    configuration.setAllowedMethods(Arrays.asList(
-        "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"
-    ));
+    // Métodos permitidos
+    configuration.addAllowedMethod("*");
 
-    configuration.setAllowedHeaders(Arrays.asList(
-        "*"
-    ));
+    // Headers permitidos
+    configuration.addAllowedHeader("*");
 
-    configuration.setExposedHeaders(Arrays.asList(
-        "Authorization",
-        "Content-Type",
-        "Content-Disposition"
-    ));
-
-    configuration.setMaxAge(3600L);
+    // Headers expuestos al cliente
+    configuration.addExposedHeader("Authorization");
+    configuration.addExposedHeader("Content-Type");
+    configuration.addExposedHeader("Content-Disposition");
 
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     source.registerCorsConfiguration("/**", configuration);
