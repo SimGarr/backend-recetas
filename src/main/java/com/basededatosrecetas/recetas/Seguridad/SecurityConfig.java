@@ -87,31 +87,54 @@ public class SecurityConfig {
         return authConfig.getAuthenticationManager();
     }
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-
-        // Permitir credenciales (cookies, tokens, headers Authorization)
-        configuration.setAllowCredentials(true);
-
-        // Orígenes permitidos (añade todos los que necesites)
-        configuration.setAllowedOrigins(Arrays.asList(
-            "http://localhost:8100",   // Ionic dev server
-            "https://localhost"        // Capacitor / HTTPS
-            // Puedes agregar más dominios de producción aquí
-        ));
-
-        // Métodos HTTP permitidos
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-
-        // Headers permitidos
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept"));
-
-        // Headers expuestos al cliente
-        configuration.setExposedHeaders(Arrays.asList("Authorization", "Content-Type", "Content-Disposition"));
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
+@Bean
+public CorsConfigurationSource corsConfigurationSource() {
+    CorsConfiguration configuration = new CorsConfiguration();
+    
+    // IMPORTANTE: Usar setAllowedOriginPatterns en lugar de setAllowedOrigins
+    configuration.setAllowedOriginPatterns(Arrays.asList(
+        "http://localhost:8100",      // Ionic serve
+        "https://localhost:8100",     // Ionic serve con HTTPS
+        "https://localhost",          // Capacitor Android/Web
+        "capacitor://localhost",      // Capacitor nativo (Android/iOS)
+        "ionic://localhost",          // Ionic nativo
+        "http://localhost",           // Desarrollo local
+        "https://apprecetas.duckdns.org" // Tu dominio en producción
+    ));
+    
+    configuration.setAllowCredentials(true);
+    
+    // Métodos permitidos
+    configuration.setAllowedMethods(Arrays.asList(
+        "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"
+    ));
+    
+    // Headers permitidos
+    configuration.setAllowedHeaders(Arrays.asList(
+        "Authorization",
+        "Content-Type",
+        "Accept",
+        "Origin",
+        "X-Requested-With",
+        "Access-Control-Request-Method",
+        "Access-Control-Request-Headers",
+        "X-CSRF-Token"
+    ));
+    
+    // Headers expuestos
+    configuration.setExposedHeaders(Arrays.asList(
+        "Authorization",
+        "Content-Type",
+        "Content-Disposition",
+        "Access-Control-Allow-Origin",
+        "Access-Control-Allow-Credentials"
+    ));
+    
+    // Tiempo máximo de caché para preflight (1 hora)
+    configuration.setMaxAge(3600L);
+    
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", configuration);
+    return source;
+}
 }
