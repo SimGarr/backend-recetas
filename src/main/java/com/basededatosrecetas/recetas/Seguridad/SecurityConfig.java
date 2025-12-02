@@ -87,29 +87,31 @@ public class SecurityConfig {
         return authConfig.getAuthenticationManager();
     }
 
-@Bean
-public CorsConfigurationSource corsConfigurationSource() {
-    CorsConfiguration configuration = new CorsConfiguration();
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
 
-    // Permitir credenciales (tokens, cookies, Authorization headers)
-    configuration.setAllowCredentials(true);
+        // Permitir credenciales (cookies, tokens, headers Authorization)
+        configuration.setAllowCredentials(true);
 
-    // **Permitir cualquier origen**
-    configuration.addAllowedOriginPattern("*");
+        // Orígenes permitidos (añade todos los que necesites)
+        configuration.setAllowedOrigins(Arrays.asList(
+            "http://localhost:8100",   // Ionic dev server
+            "https://localhost"        // Capacitor / HTTPS
+            // Puedes agregar más dominios de producción aquí
+        ));
 
-    // Métodos permitidos
-    configuration.addAllowedMethod("*");
+        // Métodos HTTP permitidos
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
 
-    // Headers permitidos
-    configuration.addAllowedHeader("*");
+        // Headers permitidos
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept"));
 
-    // Headers expuestos al cliente
-    configuration.addExposedHeader("Authorization");
-    configuration.addExposedHeader("Content-Type");
-    configuration.addExposedHeader("Content-Disposition");
+        // Headers expuestos al cliente
+        configuration.setExposedHeaders(Arrays.asList("Authorization", "Content-Type", "Content-Disposition"));
 
-    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/**", configuration);
-    return source;
-}
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
 }
