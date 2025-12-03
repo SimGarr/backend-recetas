@@ -1,7 +1,5 @@
 package com.basededatosrecetas.recetas.Seguridad;
 
-
-
 import java.security.Key;
 import java.util.Date;
 
@@ -28,11 +26,12 @@ public class JwtUtil {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    // Generar token con email y rol
-    public String generateToken(String email, String rol) {
+    // Generar token con email, rol y userId
+    public String generateToken(String email, String rol, Long userId) {
         return Jwts.builder()
                 .setSubject(email)
                 .claim("rol", rol)
+                .claim("userId", userId)  // ← AÑADIDO: userId como claim
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
@@ -47,6 +46,11 @@ public class JwtUtil {
     // Obtener rol del token
     public String extractRole(String token) {
         return getClaims(token).get("rol", String.class);
+    }
+
+    // Obtener userId del token
+    public Long extractUserId(String token) {
+        return getClaims(token).get("userId", Long.class);
     }
 
     // Validar token

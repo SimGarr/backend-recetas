@@ -46,7 +46,12 @@ public class UsuarioController {
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> registerUsuario(@RequestBody Usuario usuario) {
         Usuario nuevoUsuario = usuarioService.createUsuario(usuario);
-        String token = jwtUtil.generateToken(nuevoUsuario.getEmail(), nuevoUsuario.getRol());
+        // Ahora incluye userId en el token
+        String token = jwtUtil.generateToken(
+            nuevoUsuario.getEmail(), 
+            nuevoUsuario.getRol(), 
+            nuevoUsuario.getId()  // ← AÑADIDO: pasar el ID del usuario
+        );
         return ResponseEntity.ok(new AuthResponse(token));
     }
 
@@ -76,11 +81,26 @@ public class UsuarioController {
             return ResponseEntity.status(401).body(new AuthResponse("Contraseña incorrecta"));
         }
 
-        String token = jwtUtil.generateToken(user.getEmail(), user.getRol());
+        // Ahora incluye userId en el token
+        String token = jwtUtil.generateToken(
+            user.getEmail(), 
+            user.getRol(), 
+            user.getId()  // ← AÑADIDO: pasar el ID del usuario
+        );
         return ResponseEntity.ok(new AuthResponse(token));
     }
 
-    // Clase interna para respuesta de login/registr
+    // Nuevo endpoint para obtener usuario por email
+    @GetMapping("/email/{email}")
+    public ResponseEntity<Usuario> getUsuarioByEmail(@PathVariable String email) {
+        Optional<Usuario> userOpt = usuarioService.getUsuarioByEmail(email);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(userOpt.get());
+    }
+
+    // Clase interna para respuesta de login/registro
     @Data
     @AllArgsConstructor
     public static class AuthResponse {
