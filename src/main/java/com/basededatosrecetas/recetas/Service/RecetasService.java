@@ -66,7 +66,6 @@ public class RecetasService {
                 receta.setNombre(recetaDetails.getNombre());
                 receta.setDescripcion(recetaDetails.getDescripcion());
                 receta.setCategoria(recetaDetails.getCategoria());
-                receta.setImagenUrl(recetaDetails.getImagenUrl());
                 receta.setTiempoPreparacion(recetaDetails.getTiempoPreparacion());
                 receta.setCalificacionPromedio(recetaDetails.getCalificacionPromedio());
                 

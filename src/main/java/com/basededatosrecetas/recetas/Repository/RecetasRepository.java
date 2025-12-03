@@ -8,4 +8,5 @@ import com.basededatosrecetas.recetas.Model.Recetas;
 
 public interface RecetasRepository extends JpaRepository<Recetas, Long> {
     List<Recetas> findByCategoria(String categoria);
+    List<Recetas> findByUsuarioId(Long usuarioId);
 }
