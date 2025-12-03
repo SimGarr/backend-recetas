@@ -46,7 +46,7 @@ jobs:
           docker --version
           docker-compose --version
 
-    # 3. Sincronizar archivos (INCLUYENDO el keystore generado)
+    # 3. Sincronizar archivos (INCLUYENDO el keystore generado)s
     - name: Sincronizar archivos al servidor
       uses: burnett01/rsync-deployments@7.0.2
       with:
