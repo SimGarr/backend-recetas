@@ -9,5 +9,5 @@ public class PerfilUpdateDTO {
     private String nombre;
     private String descripcion;
     private String imagenPerfilBase64;  // Base64 sin prefijo
-    private String imagenPerfilTipo;    // "image/jpeg", etc.
+    private String imagenPerfilTipo;
 }
