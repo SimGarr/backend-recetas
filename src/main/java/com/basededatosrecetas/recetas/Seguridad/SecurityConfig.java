@@ -40,20 +40,26 @@ public class SecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .authorizeHttpRequests(auth -> auth
-                // Permitir OPTIONS
+                // **CRÍTICO: Permitir OPTIONS PRIMERO**
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                 // ==================== ACTUATOR ====================
                 .requestMatchers("/actuator/**").permitAll()
 
                 // ==================== ENDPOINTS PÚBLICOS ====================
-                .requestMatchers(
-                    "/api/usuarios/login", 
-                    "/api/usuarios/register",
-                    "/api/recetas/**",
-                    "/api/archivos/**",
-                    "/error"
-                ).permitAll()
+                // **ESPECÍFICOS primero**
+                .requestMatchers("/api/usuarios/login").permitAll()
+                .requestMatchers("/api/usuarios/register").permitAll()
+                .requestMatchers("/error").permitAll()
+                
+                // **Lectura pública de recetas**
+                .requestMatchers(HttpMethod.GET, "/api/recetas/**").permitAll()
+                
+                // **Lectura pública de comentarios**
+                .requestMatchers(HttpMethod.GET, "/comentarios/**").permitAll()
+                
+                // **Lectura pública de etiquetas**
+                .requestMatchers(HttpMethod.GET, "/etiquetas/**").permitAll()
 
                 // ==================== ENDPOINTS DE USUARIO ====================
                 .requestMatchers(
@@ -63,10 +69,13 @@ public class SecurityConfig {
                     "/api/comentarios/**",
                     "/api/favoritos/**",
                     "/api/historial/**",
-                    "/api/perfil/**",  // ← AGREGADO AQUÍ
-                    "/like/**",
-                    "/historial/**"
+                    "/api/perfil/**"      // ← AGREGADO AQUÍ
                 ).hasAnyRole("USER", "ADMIN")
+
+                // **Escritura de recetas (POST, PUT, DELETE)**
+                .requestMatchers(HttpMethod.POST, "/api/recetas/**").hasAnyRole("USER", "ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/recetas/**").hasAnyRole("USER", "ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/recetas/**").hasAnyRole("USER", "ADMIN")
 
                 // ==================== ENDPOINTS ADMIN ====================
                 .requestMatchers(
@@ -75,11 +84,6 @@ public class SecurityConfig {
                     "/api/etiquetas/**",
                     "/api/categorias/**"
                 ).hasRole("ADMIN")
-
-                // ==================== ENDPOINTS PÚBLICOS DE LECTURA ====================
-                .requestMatchers(HttpMethod.GET, "/comentarios/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/etiquetas/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/like/receta/**").permitAll()
 
                 // Cualquier otra ruta requiere autenticación
                 .anyRequest().authenticated()
@@ -98,29 +102,23 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         
-        // AÑADIDO: "*" para desarrollo, pero mejor usar patrones específicos
+        // **SOLUCIÓN: Agrega estos orígenes específicos**
         configuration.setAllowedOriginPatterns(Arrays.asList(
-            "*",                           // Permite todos en desarrollo (quitar en producción)
-            "http://localhost:*",          // Cualquier puerto localhost
-            "https://localhost:*",         // Cualquier puerto HTTPS localhost  
-            "http://localhost:8100",       // Ionic serve
-            "https://localhost:8100",      // Ionic serve con HTTPS
-            "https://localhost",           // Capacitor Android/Web
-            "capacitor://localhost",       // Capacitor nativo (Android/iOS)
-            "ionic://localhost",           // Ionic nativo
-            "http://localhost",            // Desarrollo local
-            "https://apprecetas.serveblog.net", // Tu dominio
-            "https://apprecetas.duckdns.org" // Tu dominio alternativo
+            "https://localhost",          // Esto es lo que usa Capacitor
+            "capacitor://localhost",      // Nativo
+            "ionic://localhost",          // Ionic nativo
+            "http://localhost:8100",      // Ionic serve
+            "http://localhost",           // Local sin puerto
+            "https://localhost:8100",     // HTTPS local
+            "https://apprecetas.serveblog.net"
         ));
         
         configuration.setAllowCredentials(true);
         
-        // Métodos permitidos
         configuration.setAllowedMethods(Arrays.asList(
             "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"
         ));
         
-        // Headers permitidos
         configuration.setAllowedHeaders(Arrays.asList(
             "Authorization",
             "Content-Type",
@@ -132,7 +130,6 @@ public class SecurityConfig {
             "X-CSRF-Token"
         ));
         
-        // Headers expuestos
         configuration.setExposedHeaders(Arrays.asList(
             "Authorization",
             "Content-Type",
@@ -141,7 +138,6 @@ public class SecurityConfig {
             "Access-Control-Allow-Credentials"
         ));
         
-        // Tiempo máximo de caché para preflight (1 hora)
         configuration.setMaxAge(3600L);
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
