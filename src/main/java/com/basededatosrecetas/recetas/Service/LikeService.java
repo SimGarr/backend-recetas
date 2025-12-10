@@ -22,8 +22,13 @@ public class LikeService {
     public Like addLike(Like like) {
         log.info("❤️ Agregando like - Usuario: {}, Receta: {}", 
                 like.getUsuario().getId(), like.getReceta().getId());
+
         try {
-            if (likeRepository.existsByUsuarioIdAndRecetaId(like.getUsuario().getId(), like.getReceta().getId())) {
+            // MÉTODO CORRECTO
+            if (likeRepository.existsByUsuario_IdAndReceta_Id(
+                    like.getUsuario().getId(), 
+                    like.getReceta().getId()
+                )) {
                 log.warn("⚠️ Like ya existe - Usuario: {}, Receta: {}", 
                         like.getUsuario().getId(), like.getReceta().getId());
                 return null;
@@ -32,6 +37,7 @@ public class LikeService {
             Like saved = likeRepository.save(like);
             log.info("✅ Like agregado exitosamente - ID: {}", saved.getId());
             return saved;
+
         } catch (Exception e) {
             log.error("❌ Error agregando like - Usuario: {}, Receta: {}, Error: {}", 
                      like.getUsuario().getId(), like.getReceta().getId(), e.getMessage());
@@ -41,14 +47,20 @@ public class LikeService {
 
     public List<Like> getLikesByUsuario(Long usuarioId) {
         log.debug("👤 Obteniendo likes del usuario - ID: {}", usuarioId);
-        List<Like> likes = likeRepository.findByUsuarioId(usuarioId);
+
+        // MÉTODO CORRECTO
+        List<Like> likes = likeRepository.findByUsuario_Id(usuarioId);
+
         log.info("❤️ Likes del usuario {}: {} recetas", usuarioId, likes.size());
         return likes;
     }
 
     public List<Like> getLikesByReceta(Long recetaId) {
         log.debug("🍳 Obteniendo likes de receta - ID: {}", recetaId);
-        List<Like> likes = likeRepository.findByRecetaId(recetaId);
+
+        // MÉTODO CORRECTO
+        List<Like> likes = likeRepository.findByReceta_Id(recetaId);
+
         log.info("❤️ Likes de receta {}: {} likes", recetaId, likes.size());
         return likes;
     }
