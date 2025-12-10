@@ -27,80 +27,65 @@ public class UsuarioService implements UserDetailsService {
     private PasswordEncoder passwordEncoder;
 
     public Usuario createUsuario(Usuario usuario) {
-        logger.info("🆕 Creando usuario: email={}", usuario.getEmail());
+        logger.info("Creando usuario {}", usuario.getEmail());
         usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
-        if (usuario.getRol() == null || usuario.getRol().isEmpty()) {
-            usuario.setRol("ROLE_USER");
-        }
-        Usuario nuevoUsuario = usuarioRepository.save(usuario);
-        logger.info("✅ Usuario creado correctamente: id={}, email={}", nuevoUsuario.getId(), nuevoUsuario.getEmail());
-        return nuevoUsuario;
+        return usuarioRepository.save(usuario);
     }
 
     public List<Usuario> getAllUsuarios() {
-        logger.info("📋 Obteniendo todos los usuarios");
-        List<Usuario> usuarios = usuarioRepository.findAll();
-        logger.info("✅ Se encontraron {} usuarios", usuarios.size());
-        return usuarios;
+        return usuarioRepository.findAll();
     }
 
     public Optional<Usuario> getUsuarioById(Long id) {
-        logger.info("🔍 Buscando usuario por ID: {}", id);
         return usuarioRepository.findById(id);
     }
 
     public Optional<Usuario> getUsuarioByEmail(String email) {
-        logger.info("🔍 Buscando usuario por email: {}", email);
         return usuarioRepository.findByEmail(email);
     }
 
     public Optional<Usuario> updateUsuario(Long id, Usuario usuarioDetails) {
-        logger.info("✏️ Actualizando usuario id={}", id);
         return usuarioRepository.findById(id).map(usuario -> {
-            usuario.setNombre(usuarioDetails.getNombre());
-            usuario.setEmail(usuarioDetails.getEmail());
-            usuario.setRol(usuarioDetails.getRol() != null ? usuarioDetails.getRol() : usuario.getRol());
+
+            // EDITAR CAMPOS DEL PERFIL
+            if (usuarioDetails.getNombre() != null)
+                usuario.setNombre(usuarioDetails.getNombre());
+
+            if (usuarioDetails.getDescripcion() != null)
+                usuario.setDescripcion(usuarioDetails.getDescripcion());
+
+            if (usuarioDetails.getImagenPerfil() != null)
+                usuario.setImagenPerfil(usuarioDetails.getImagenPerfil());
 
             if (usuarioDetails.getPassword() != null && !usuarioDetails.getPassword().isEmpty()) {
                 usuario.setPassword(passwordEncoder.encode(usuarioDetails.getPassword()));
             }
 
-            Usuario actualizado = usuarioRepository.save(usuario);
-            logger.info("✅ Usuario actualizado correctamente: id={}, email={}", actualizado.getId(), actualizado.getEmail());
-            return actualizado;
+            return usuarioRepository.save(usuario);
         });
     }
 
     public boolean deleteUsuario(Long id) {
-        logger.info("🗑️ Eliminando usuario id={}", id);
         if (usuarioRepository.existsById(id)) {
             usuarioRepository.deleteById(id);
-            logger.info("✅ Usuario eliminado correctamente");
             return true;
         }
-        logger.warn("⚠️ Usuario con id={} no existe", id);
         return false;
-    }
-
-    public boolean checkPassword(String rawPassword, String encodedPassword) {
-        boolean match = passwordEncoder.matches(rawPassword, encodedPassword);
-        logger.info(match ? "🔒 Contraseña correcta" : "❌ Contraseña incorrecta");
-        return match;
     }
 
     @Override
     public UserDetails loadUserByUsername(String email) {
-        logger.info("🔑 Cargando usuario para autenticación: email={}", email);
         Usuario usuario = usuarioRepository.findByEmail(email)
-                .orElseThrow(() -> {
-                    logger.error("❌ Usuario no encontrado: email={}", email);
-                    return new RuntimeException("Usuario no encontrado");
-                });
-        logger.info("✅ Usuario cargado correctamente: email={}", email);
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
         return User.builder()
                 .username(usuario.getEmail())
                 .password(usuario.getPassword())
-                .roles(usuario.getRol().replace("ROLE_", ""))
+                .roles(usuario.getRol())
                 .build();
     }
+
+    public boolean checkPassword(String rawPassword, String encodedPassword) {
+    return passwordEncoder.matches(rawPassword, encodedPassword);
+}
 }
