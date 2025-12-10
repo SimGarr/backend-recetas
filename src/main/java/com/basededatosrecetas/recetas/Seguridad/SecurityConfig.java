@@ -40,26 +40,20 @@ public class SecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .authorizeHttpRequests(auth -> auth
-                // **CRÍTICO: Permitir OPTIONS PRIMERO**
+                // Permitir OPTIONS
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                 // ==================== ACTUATOR ====================
                 .requestMatchers("/actuator/**").permitAll()
 
                 // ==================== ENDPOINTS PÚBLICOS ====================
-                // **ESPECÍFICOS primero**
-                .requestMatchers("/api/usuarios/login").permitAll()
-                .requestMatchers("/api/usuarios/register").permitAll()
-                .requestMatchers("/error").permitAll()
-                
-                // **Lectura pública de recetas**
-                .requestMatchers(HttpMethod.GET, "/api/recetas/**").permitAll()
-                
-                // **Lectura pública de comentarios**
-                .requestMatchers(HttpMethod.GET, "/comentarios/**").permitAll()
-                
-                // **Lectura pública de etiquetas**
-                .requestMatchers(HttpMethod.GET, "/etiquetas/**").permitAll()
+                .requestMatchers(
+                    "/api/usuarios/login", 
+                    "/api/usuarios/register",
+                    "/api/recetas/**",
+                    "/api/archivos/**",
+                    "/error"
+                ).permitAll()
 
                 // ==================== ENDPOINTS DE USUARIO ====================
                 .requestMatchers(
@@ -69,13 +63,8 @@ public class SecurityConfig {
                     "/api/comentarios/**",
                     "/api/favoritos/**",
                     "/api/historial/**",
-                    "/api/perfil/**"      // ← AGREGADO AQUÍ
+                    "/api/perfil/**"
                 ).hasAnyRole("USER", "ADMIN")
-
-                // **Escritura de recetas (POST, PUT, DELETE)**
-                .requestMatchers(HttpMethod.POST, "/api/recetas/**").hasAnyRole("USER", "ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/api/recetas/**").hasAnyRole("USER", "ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/api/recetas/**").hasAnyRole("USER", "ADMIN")
 
                 // ==================== ENDPOINTS ADMIN ====================
                 .requestMatchers(
@@ -98,50 +87,54 @@ public class SecurityConfig {
         return authConfig.getAuthenticationManager();
     }
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        
-        // **SOLUCIÓN: Agrega estos orígenes específicos**
-        configuration.setAllowedOriginPatterns(Arrays.asList(
-            "https://localhost",          // Esto es lo que usa Capacitor
-            "capacitor://localhost",      // Nativo
-            "ionic://localhost",          // Ionic nativo
-            "http://localhost:8100",      // Ionic serve
-            "http://localhost",           // Local sin puerto
-            "https://localhost:8100",     // HTTPS local
-            "https://apprecetas.serveblog.net"
-        ));
-        
-        configuration.setAllowCredentials(true);
-        
-        configuration.setAllowedMethods(Arrays.asList(
-            "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"
-        ));
-        
-        configuration.setAllowedHeaders(Arrays.asList(
-            "Authorization",
-            "Content-Type",
-            "Accept",
-            "Origin",
-            "X-Requested-With",
-            "Access-Control-Request-Method",
-            "Access-Control-Request-Headers",
-            "X-CSRF-Token"
-        ));
-        
-        configuration.setExposedHeaders(Arrays.asList(
-            "Authorization",
-            "Content-Type",
-            "Content-Disposition",
-            "Access-Control-Allow-Origin",
-            "Access-Control-Allow-Credentials"
-        ));
-        
-        configuration.setMaxAge(3600L);
-        
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
+@Bean
+public CorsConfigurationSource corsConfigurationSource() {
+    CorsConfiguration configuration = new CorsConfiguration();
+    
+    // IMPORTANTE: Usar setAllowedOriginPatterns en lugar de setAllowedOrigins
+    configuration.setAllowedOriginPatterns(Arrays.asList(
+        "http://localhost:8100",      // Ionic serve
+        "https://localhost:8100",     // Ionic serve con HTTPS
+        "https://localhost",          // Capacitor Android/Web
+        "capacitor://localhost",      // Capacitor nativo (Android/iOS)
+        "ionic://localhost",          // Ionic nativo
+        "http://localhost",           // Desarrollo local
+        "https://apprecetas.duckdns.org" // Tu dominio en producción
+    ));
+    
+    configuration.setAllowCredentials(true);
+    
+    // Métodos permitidos
+    configuration.setAllowedMethods(Arrays.asList(
+        "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"
+    ));
+    
+    // Headers permitidos
+    configuration.setAllowedHeaders(Arrays.asList(
+        "Authorization",
+        "Content-Type",
+        "Accept",
+        "Origin",
+        "X-Requested-With",
+        "Access-Control-Request-Method",
+        "Access-Control-Request-Headers",
+        "X-CSRF-Token"
+    ));
+    
+    // Headers expuestos
+    configuration.setExposedHeaders(Arrays.asList(
+        "Authorization",
+        "Content-Type",
+        "Content-Disposition",
+        "Access-Control-Allow-Origin",
+        "Access-Control-Allow-Credentials"
+    ));
+    
+    // Tiempo máximo de caché para preflight (1 hora)
+    configuration.setMaxAge(3600L);
+    
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", configuration);
+    return source;
+}
 }
