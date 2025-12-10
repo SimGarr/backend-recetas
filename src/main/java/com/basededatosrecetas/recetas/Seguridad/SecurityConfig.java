@@ -66,7 +66,7 @@ public class SecurityConfig {
                     "/api/perfil/**"
                 ).hasAnyRole("USER", "ADMIN")
 
-                // ==================== ENDPOINTS ADMIN ====================
+                // ==================== ENDPOINTS ADMasdasdasdINs ====================
                 .requestMatchers(
                     "/api/usuarios/**",
                     "/api/admin/**",
